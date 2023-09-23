@@ -11,6 +11,8 @@ eureka:
     service-url:
       defaultZone: http://localhost:8761/eureka
 
+#      defaultZone: http://discovery-service:8761/eureka
+
 spring:
   application:
     name: apigateway-service
@@ -20,12 +22,12 @@ spring:
     username: guest
     password: guest
 
-  h2:
-    console:
-      enabled: true
-      settings:
-        web-allow-others: true
-      path: /h2-console
+#  h2:
+#    console:
+#      enabled: true
+#      settings:
+#        web-allow-others: true
+#      path: /h2-console
   cloud:
     gateway:
       default-filters:
@@ -35,10 +37,6 @@ spring:
             preLogger: true
             postLogger: true
       routes:
-#        - id: user-service
-#          uri: lb://USER-SERVICE
-#          predicates:
-#            - Path=/user-service/**
         - id: user-service
           uri: lb://USER-SERVICE
           predicates:
@@ -73,6 +71,27 @@ spring:
           filters:
             - RemoveRequestHeader=Cookie
             - RewritePath=/user-service/(?<segment>.*), /$\{segment}
+
+#         apply-service
+        - id: apply-service
+          uri: lb://APPLY-SERVICE
+          predicates:
+            - Path=/apply-service/**
+            - Method=GET,POST
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/apply-service/(?<segment>.*), /$\{segment}
+            - AuthorizationHeaderFilter
+        - id: apply-service
+          uri: lb://APPLY-SERVICE
+          predicates:
+            - Path=/apply-service/recruitment/**
+            - Method=GET,POST
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/apply-service/(?<segment>.*), /$\{segment}
+            - AuthorizationHeaderFilter
+
 #        - id: order-service
 #          uri: lb://ORDER-SERVICE
 #          predicates:

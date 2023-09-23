@@ -40,6 +40,14 @@
 			<version>4.4.0</version>
 		</dependency>
 
+		<!-- Netty Resolver DNS Native macOS (osx-aarch_64) -->
+		<dependency>
+			<groupId>io.netty</groupId>
+			<artifactId>netty-resolver-dns-native-macos</artifactId>
+			<version>4.1.68.Final</version>
+			<classifier>osx-aarch_64</classifier>
+		</dependency>
+
 		<dependency>
 			<groupId>io.jsonwebtoken</groupId>
 			<artifactId>jjwt</artifactId>
