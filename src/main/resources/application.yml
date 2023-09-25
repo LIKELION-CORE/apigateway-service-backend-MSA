@@ -40,7 +40,7 @@ spring:
         - id: user-service
           uri: lb://USER-SERVICE
           predicates:
-            - Path=/user-service/login,/user-service/join
+            - Path=/user-service/api/v1/member/login,/user-service/api/v1/member
             - Method=POST
           filters:
             - RemoveRequestHeader=Cookie
@@ -49,7 +49,7 @@ spring:
           uri: lb://USER-SERVICE
           predicates:
             - Path=/user-service/**
-            - Method=POST
+            - Method=PUT,DELETE
           filters:
             - RemoveRequestHeader=Cookie
             - RewritePath=/user-service/(?<segment>.*), /$\{segment}
@@ -60,9 +60,9 @@ spring:
             - Path=/user-service/**
             - Method=GET
           filters:
+            - AuthorizationHeaderFilter
             - RemoveRequestHeader=Cookie
             - RewritePath=/user-service/(?<segment>.*), /$\{segment}
-#            - AuthorizationHeaderFilter
         - id: user-service
           uri: lb://USER-SERVICE
           predicates:

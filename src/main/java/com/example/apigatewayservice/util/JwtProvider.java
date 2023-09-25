@@ -29,7 +29,7 @@ public class JwtProvider {
         return JWT.require(Algorithm.HMAC512(SECRET_KEY))
                 .build()
                 .verify(token)
-                .getClaim("userId").asString();
+                .getClaim("username").asString();
     }
 
     public Date getDateExpireFromToken(String token) {
