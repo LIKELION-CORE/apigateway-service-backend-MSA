@@ -76,6 +76,15 @@ spring:
         - id: apply-service
           uri: lb://APPLY-SERVICE
           predicates:
+            - Path=/apply-service/answer/**
+            - Method=GET,POST
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/apply-service/(?<segment>.*), /$\{segment}
+            - AuthorizationHeaderFilter
+        - id: apply-service
+          uri: lb://APPLY-SERVICE
+          predicates:
             - Path=/apply-service/recruitment/**
             - Method=GET
           filters:
