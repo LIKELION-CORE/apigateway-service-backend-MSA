@@ -1,7 +1,19 @@
+
+## 배포
+
 #spring:
 #  cloud:
 #    config:
-#      uri: http://127.0.0.1:8888
-#      name: ecommerce # yml 파일명 써주면 된다.
-##  profiles:
-##    active: dev
+#      uri: http://config-service-backend-msa-config-server-1:8888
+#      name: apigateway # yml 파일명 써주면 된다.
+#  profiles:
+#    active: dev
+
+## 로컬
+spring:
+  cloud:
+    config:
+      uri: http://localhost:8888
+      name: apigateway # yml 파일명 써주면 된다.
+  profiles:
+    active: dev
