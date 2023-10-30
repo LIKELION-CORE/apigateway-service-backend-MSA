@@ -1,3 +1,37 @@
+#server:
+#  spring:
+#    mvc:
+#      pathmatch:
+#        matching-strategy: ant_path_matcher
+#  port: 8000
+#eureka:
+#  client:
+#    fetch-registry: true
+#    register-with-eureka: true
+#    service-url:
+#      defaultZone: http://localhost:8761/eureka
+#
+##      defaultZone: http://discovery-service:8761/eureka
+#
+#spring:
+#  application:
+#    name: apigateway-service
+#  rabbitmq:
+#    host: 127.0.0.1
+#    port: 5672
+#    username: guest
+#    password: guest
+#  cloud:
+#    gateway:
+#      default-filters:
+#        - name: GlobalFilter
+#          args:
+#            baseMessage: Spring Cloud Gateway Global Filter
+#            preLogger: true
+#            postLogger: true
+#      routes:
+#        - id: user-service
+#          uri: lb://USER-SERVICE
 server:
   spring:
     mvc:
@@ -112,48 +146,111 @@ spring:
 #        - id: order-service
 #          uri: lb://ORDER-SERVICE
 #          predicates:
-#            - Path=/order-service/**
-#        - id: order-service
-#          uri: lb://ORDER-SERVICE
+#            - Path=/user-service/api/v1/member/login,/user-service/api/v1/member
+#            - Method=POST
+#          filters:
+#            - RemoveRequestHeader=Cookie
+#            - RewritePath=/user-service/(?<segment>.*), /$\{segment}
+#        - id: user-service
+#          uri: lb://USER-SERVICE
 #          predicates:
-#            - Path=/order-service/actuator/**
+#            - Path=/user-service/**
+#            - Method=PUT,DELETE
+#          filters:
+#            - RemoveRequestHeader=Cookie
+#            - RewritePath=/user-service/(?<segment>.*), /$\{segment}
+#            - AuthorizationHeaderFilter
+#        - id: user-service
+#          uri: lb://USER-SERVICE
+#          predicates:
+#            - Path=/user-service/**
+#            - Method=GET
+#          filters:
+#            - AuthorizationHeaderFilter
+#            - RemoveRequestHeader=Cookie
+#            - RewritePath=/user-service/(?<segment>.*), /$\{segment}
+#        - id: user-service
+#          uri: lb://USER-SERVICE
+#          predicates:
+#            - Path=/user-service/actuator/**
+#            - Method=GET,POST
+#          filters:
+#            - RemoveRequestHeader=Cookie
+#            - RewritePath=/user-service/(?<segment>.*), /$\{segment}
+#
+##         apply-service
+#        - id: apply-service
+#          uri: lb://APPLY-SERVICE
+#          predicates:
+#            - Path=/apply-service/recruitment/**
 #            - Method=GET
 #          filters:
 #            - RemoveRequestHeader=Cookie
-#            - RewritePath=/order-service/(?<segment>.*), /$\{segment}
-#        - id: catalog-service
-#          uri: lb://CATALOG-SERVICE
+#            - RewritePath=/apply-service/(?<segment>.*), /$\{segment}
+#        - id: apply-service
+#          uri: lb://APPLY-SERVICE
 #          predicates:
-#            - Path=/catalog-service/**
-#        - id: first-service
-#          uri: lb://MY-FIRST-SERVICE
-#          predicates:
-#            - Path=/first-service/**
+#            - Path=/apply-service/**
+#            - Method=GET,POST
 #          filters:
-##            - AddRequestHeader=first-request, first-request-header2
-##            - AddResponseHeader=first-response, first-response-header2
-#            - name: CustomFilter
-#            - name: LoggingFilter
-#              args:
-#                baseMessage: Hi, there.
-#                preLogger: true
-#                postLogger: true
-#        - id: second-service
-#          uri: lb://MY-SECOND-SERVICE
+#            - RemoveRequestHeader=Cookie
+#            - RewritePath=/apply-service/(?<segment>.*), /$\{segment}
+#            - AuthorizationHeaderFilter
+#        - id: apply-service
+#          uri: lb://APPLY-SERVICE
 #          predicates:
-#            - Path=/second-service/**
+#            - Path=/apply-service/recruitment/**
+#            - Method=GET,POST
 #          filters:
-#             - name: CustomFilter
-
-#            - AddRequestHeader=second-request, second-request-header2
-#            - AddResponseHeader=second-response, second-response-header2
-
-
-
-token:
-  secret: user_token
-management:
-  endpoints:
-    web:
-      exposure:
-        include: refresh, health, beans, httptrace, busrefresh, info, metrics, prometheus
+#            - RemoveRequestHeader=Cookie
+#            - RewritePath=/apply-service/(?<segment>.*), /$\{segment}
+#            - AuthorizationHeaderFilter
+#
+##        - id: order-service
+##          uri: lb://ORDER-SERVICE
+##          predicates:
+##            - Path=/order-service/**
+##        - id: order-service
+##          uri: lb://ORDER-SERVICE
+##          predicates:
+##            - Path=/order-service/actuator/**
+##            - Method=GET
+##          filters:
+##            - RemoveRequestHeader=Cookie
+##            - RewritePath=/order-service/(?<segment>.*), /$\{segment}
+##        - id: catalog-service
+##          uri: lb://CATALOG-SERVICE
+##          predicates:
+##            - Path=/catalog-service/**
+##        - id: first-service
+##          uri: lb://MY-FIRST-SERVICE
+##          predicates:
+##            - Path=/first-service/**
+##          filters:
+###            - AddRequestHeader=first-request, first-request-header2
+###            - AddResponseHeader=first-response, first-response-header2
+##            - name: CustomFilter
+##            - name: LoggingFilter
+##              args:
+##                baseMessage: Hi, there.
+##                preLogger: true
+##                postLogger: true
+##        - id: second-service
+##          uri: lb://MY-SECOND-SERVICE
+##          predicates:
+##            - Path=/second-service/**
+##          filters:
+##             - name: CustomFilter
+#
+##            - AddRequestHeader=second-request, second-request-header2
+##            - AddResponseHeader=second-response, second-response-header2
+#
+#
+#
+#token:
+#  secret: user_token
+#management:
+#  endpoints:
+#    web:
+#      exposure:
+#        include: refresh, health, beans, httptrace, busrefresh, info, metrics, prometheus

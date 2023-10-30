@@ -102,7 +102,6 @@
 			<artifactId>spring-cloud-starter-bus-amqp</artifactId>
 		</dependency>
 
-
 		<!-- Micrometer -->
 		<dependency>
 			<groupId>io.micrometer</groupId>
