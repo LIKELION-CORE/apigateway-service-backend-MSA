@@ -54,6 +54,7 @@ public class AuthorizationHeaderFilter extends AbstractGatewayFilterFactory<Auth
             ServerHttpRequest requestWithHeader = request.mutate()
                     .header("username", jwtProvider.getUserIdFromToken(jwt))
                     .header("Authorization", "Bearer " + jwt)
+                    .header("Access-Control-Allow-Origin", "http://localhost:3000")
                     .build();
 
             System.out.println("테스트"+jwt);
