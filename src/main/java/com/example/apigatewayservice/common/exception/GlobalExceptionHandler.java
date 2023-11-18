@@ -4,58 +4,80 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.reactive.error.ErrorWebExceptionHandler;
+import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.MediaType;
-import org.springframework.http.server.reactive.ServerHttpResponse;
-import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
-@Slf4j
-@Order(-1)
-@RequiredArgsConstructor
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.SignatureException;
+import io.jsonwebtoken.UnsupportedJwtException;
+
+import org.springframework.http.HttpStatus;
+
+@Order(Ordered.HIGHEST_PRECEDENCE)
 public class GlobalExceptionHandler implements ErrorWebExceptionHandler {
-    private final ObjectMapper objectMapper;
 
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    private final Logger logger= LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
+    //response body에 에러 내용을 작성해줌.
     @Override
-    public Mono<Void> handle(ServerWebExchange exchange, Throwable ex) {
-        ServerHttpResponse response = exchange.getResponse();
+    public Mono<Void> handle(ServerWebExchange serverWebExchange, Throwable throwable) {
 
-        if (response.isCommitted()) {
-            return Mono.error(ex);
+        logger.debug("throwable is : {}",throwable.getMessage());
+
+        List<Class<? extends RuntimeException>> jwtExceptions =
+                List.of(SignatureException.class,
+                        MalformedJwtException.class,
+                        UnsupportedJwtException.class,
+                        IllegalArgumentException.class,
+                        NoAuthorizationHeaderException.class);
+
+        Class<? extends Throwable> exceptionClass = throwable.getClass();
+
+        Map<String, Object> responseBody = new HashMap<>();
+
+        if (exceptionClass == ExpiredJwtException.class) {
+            serverWebExchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+            serverWebExchange.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
+
+            responseBody.put("errorMessage", "access token has expired");
+
+        } else if (jwtExceptions.contains(exceptionClass)) {
+            serverWebExchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+            serverWebExchange.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
+
+            responseBody.put("errorMessage", "invalid access token");
+        } else {
+            serverWebExchange.getResponse().setStatusCode(serverWebExchange.getResponse().getStatusCode());
+            serverWebExchange.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
+
+            responseBody.put("errorMessage", throwable.getMessage());
         }
 
-        response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
-        if (ex instanceof ResponseStatusException) {
-            response.setStatusCode(((ResponseStatusException) ex).getStatus());
-        }
-
-        Map<String, String> errorMap = new HashMap<>();
-        String statusCode = Objects.requireNonNull(response.getStatusCode()).toString();
-        if(statusCode.split(" ").length == 2) {
-            errorMap.put("ErrorCode", response.getStatusCode().toString().split(" ")[0]);
-            errorMap.put("ErrorMsg", response.getStatusCode().toString().split(" ")[1]);
-        }
-
-        String error = "Gateway Error";
+        DataBuffer wrap = null;
         try {
-            error = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(errorMap);
+            byte[] bytes = objectMapper.writeValueAsBytes(responseBody);
+            wrap = serverWebExchange.getResponse().bufferFactory().wrap(bytes);
         } catch (JsonProcessingException e) {
-            log.error("JsonProcessingException : " + e.getMessage());
+            e.printStackTrace();
         }
 
-        byte[] bytes = error.getBytes(StandardCharsets.UTF_8);
-        DataBuffer buffer = exchange.getResponse().bufferFactory().wrap(bytes);
-        return exchange.getResponse().writeWith(Flux.just(buffer));
+        return serverWebExchange.getResponse().writeWith(Flux.just(wrap));
     }
-
-
 }
